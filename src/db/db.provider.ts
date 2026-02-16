@@ -1,4 +1,5 @@
 import { FactoryProvider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createClient } from '@libsql/client';
 import { drizzle, LibSQLDatabase } from 'drizzle-orm/libsql';
 import * as schema from './schema';
@@ -7,10 +8,11 @@ export const DRIZZLE = 'DRIZZLE';
 
 export const DrizzleProvider: FactoryProvider = {
   provide: DRIZZLE,
-  useFactory: () => {
+  inject: [ConfigService],
+  useFactory: (configService: ConfigService) => {
     const client = createClient({
-      url: process.env.TURSO_DATABASE_URL!,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      url: configService.get<string>('TURSO_DATABASE_URL')!,
+      authToken: configService.get<string>('TURSO_AUTH_TOKEN'),
     });
     return drizzle(client, { schema });
   },
