@@ -6,9 +6,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { generateQRWithLogo } from 'qr-with-logo';
+import QrCodeWithLogo from 'qrcode-with-logos';
 import { join } from 'path';
-import { existsSync, unlinkSync } from 'fs';
 
 @Controller('qrcode')
 export class QrcodeController {
@@ -24,41 +23,28 @@ export class QrcodeController {
     const data = JSON.stringify({ serialNumber });
     const logoPath = join(process.cwd(), 'src', 'assets', 'logo.png');
 
-    // The library requires an output file for PNG, so we'll use a temp file
-    // and then send it back to the user.
-    const tempFileName = `qr_${Date.now()}.png`;
-    const tempFilePath = join(process.cwd(), tempFileName);
-
     try {
-      if (!existsSync(logoPath)) {
-        // If logo doesn't exist, we might need to handle it.
-        // For now, let's assume it exists based on our search.
-      }
-
-      await generateQRWithLogo(
-        data,
-        logoPath,
-        { errorCorrectionLevel: 'H' },
-        'PNG',
-        tempFileName,
-        async () => {
-          // Callback is called when file is written
-          res.sendFile(tempFilePath, (err) => {
-            if (err) {
-              console.error('Error sending file:', err);
-            }
-            // Cleanup temp file
-            if (existsSync(tempFilePath)) {
-              unlinkSync(tempFilePath);
-            }
-          });
+      const qrcode = new QrCodeWithLogo({
+        content: data,
+        width: 512,
+        logo: {
+          src: logoPath,
+        } as any,
+        nodeQrCodeOptions: {
+          errorCorrectionLevel: 'H',
+          margin: 4,
         },
-      );
+      });
+
+      // qrcode-with-logos returns a promise for a canvas in Node
+      const canvas = await (qrcode as any).getCanvas();
+      const img = canvas.toBuffer('image/png');
+
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Length', img.length);
+      res.end(img);
     } catch (error) {
       console.error('QR Generation Error:', error);
-      if (existsSync(tempFilePath)) {
-        unlinkSync(tempFilePath);
-      }
       throw new InternalServerErrorException('Failed to generate QR code');
     }
   }
