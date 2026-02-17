@@ -8,6 +8,13 @@
       "when": 1771282043290,
       "tag": "0000_flippant_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771287298692,
+      "tag": "0001_wild_korath",
+      "breakpoints": true
     }
   ]
 }

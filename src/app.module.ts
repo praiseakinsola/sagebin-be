@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DbModule } from './db/db.module';
 import { QrcodeModule } from './qrcode/qrcode.module';
+import { BinsModule } from './bins/bins.module';
 import { envValidationSchema } from './config/env.validation';
 
 @Module({
@@ -14,6 +15,7 @@ import { envValidationSchema } from './config/env.validation';
     }),
     DbModule,
     QrcodeModule,
+    BinsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
