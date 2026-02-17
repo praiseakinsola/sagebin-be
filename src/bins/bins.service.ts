@@ -32,23 +32,56 @@ export class BinsService {
   }
 
   private async getOrCreateBin(serialNumber: string) {
+    console.log(
+      `[BinService] getOrCreateBin() called with serialNumber: "${serialNumber}"`,
+    );
+
+    console.log(`[BinService] Querying database for existing bin...`);
     let bin = await this.db.query.bins.findFirst({
       where: eq(schema.bins.serialNumber, serialNumber),
     });
+    console.log(
+      `[BinService] Query complete. Bin ${bin ? `found (id: ${bin.id})` : 'not found'}`,
+    );
 
     if (!bin) {
+      console.log(
+        `[BinService] Creating new bin for serialNumber: "${serialNumber}"...`,
+      );
       const [newBin] = await this.db
         .insert(schema.bins)
         .values({
           serialNumber,
           fillLevel: 0,
-          status: 'open',
+          status: 'close',
           lastOnlineAt: new Date(),
         })
         .returning();
+
+      if (!newBin) {
+        console.error(
+          `[BinService] ERROR: Insert returned no rows for serialNumber: "${serialNumber}"`,
+        );
+        throw new Error(
+          `Failed to create bin for serialNumber: "${serialNumber}"`,
+        );
+      }
+
+      console.log(
+        `[BinService] New bin created successfully:`,
+        JSON.stringify(newBin, null, 2),
+      );
       bin = newBin;
+    } else {
+      console.log(
+        `[BinService] Returning existing bin:`,
+        JSON.stringify(bin, null, 2),
+      );
     }
 
+    console.log(
+      `[BinService] getOrCreateBin() complete. Returning bin id: ${bin.id}`,
+    );
     return bin;
   }
 
@@ -135,6 +168,8 @@ export class BinsService {
 
   async getBin(serialNumber: string) {
     const bin = await this.getOrCreateBin(serialNumber);
+
+    console.log(bin);
 
     const isOnline =
       bin.lastOnlineAt &&
