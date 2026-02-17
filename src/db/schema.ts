@@ -44,6 +44,26 @@ export const binStatusHistory = sqliteTable('bin_status_history', {
 export const binsRelations = relations(bins, ({ many }) => ({
   fillLevelHistory: many(binFillLevelHistory),
   statusHistory: many(binStatusHistory),
+  fcmTokens: many(binFcmTokens),
+}));
+
+// TODO: Consider adding device specific metadata to distinguish between multiple devices for the same bin
+export const binFcmTokens = sqliteTable('bin_fcm_tokens', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  binId: integer('bin_id')
+    .notNull()
+    .references(() => bins.id, { onDelete: 'cascade' }),
+  token: text('token').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(
+    () => new Date(),
+  ),
+});
+
+export const binFcmTokensRelations = relations(binFcmTokens, ({ one }) => ({
+  bin: one(bins, {
+    fields: [binFcmTokens.binId],
+    references: [bins.id],
+  }),
 }));
 
 export const binFillLevelHistoryRelations = relations(

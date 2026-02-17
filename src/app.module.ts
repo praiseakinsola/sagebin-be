@@ -7,6 +7,7 @@ import { QrcodeModule } from './qrcode/qrcode.module';
 import { BinsModule } from './bins/bins.module';
 import { envValidationSchema } from './config/env.validation';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     DbModule,
     QrcodeModule,
     BinsModule,
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

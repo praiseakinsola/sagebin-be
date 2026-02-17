@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Param,
   Body,
   ParseIntPipe,
@@ -9,6 +10,7 @@ import {
 import { BinsService } from './bins.service';
 import { SetFillLevelDto } from './dto/set-fill-level.dto';
 import { SetStatusDto } from './dto/set-status.dto';
+import { RegisterFcmTokenDto } from './dto/register-fcm-token.dto';
 
 @Controller('bins')
 export class BinsController {
@@ -57,5 +59,16 @@ export class BinsController {
     @Body('days') days?: number,
   ) {
     return this.binsService.getStatusTimeline(serialNumber, days);
+  }
+
+  @Post(':serialNumber/fcm-token')
+  registerFcmToken(
+    @Param('serialNumber') serialNumber: string,
+    @Body() registerFcmTokenDto: RegisterFcmTokenDto,
+  ) {
+    return this.binsService.registerFcmToken(
+      serialNumber,
+      registerFcmTokenDto.token,
+    );
   }
 }

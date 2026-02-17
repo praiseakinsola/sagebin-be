@@ -3,12 +3,14 @@ import { eq, desc, and, gte } from 'drizzle-orm';
 import * as schema from '../db/schema';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import { DRIZZLE } from '../db/db.provider';
+import { FirebaseService } from '../firebase/firebase.service';
 
 @Injectable()
 export class BinsService {
   constructor(
     @Inject(DRIZZLE)
     private readonly db: LibSQLDatabase<typeof schema>,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   private async getOrCreateBin(serialNumber: string) {
@@ -44,6 +46,22 @@ export class BinsService {
       binId: bin.id,
       fillLevel,
     });
+
+    // TODO: Make the percentage threshold (80) configurable via environment variables or database settings
+    if (fillLevel > 80) {
+      const tokens = await this.db.query.binFcmTokens.findMany({
+        where: eq(schema.binFcmTokens.binId, bin.id),
+      });
+
+      for (const { token } of tokens) {
+        await this.firebaseService.sendNotification(
+          token,
+          'Bin Alert!',
+          `Bin ${serialNumber} is ${fillLevel}% full. Please empty it soon.`,
+          { serialNumber, fillLevel: String(fillLevel) },
+        );
+      }
+    }
 
     return { success: true, serialNumber, fillLevel };
   }
@@ -118,5 +136,26 @@ export class BinsService {
       where: and(...whereClause),
       orderBy: [desc(schema.binStatusHistory.timestamp)],
     });
+  }
+
+  async registerFcmToken(serialNumber: string, token: string) {
+    const bin = await this.getOrCreateBin(serialNumber);
+
+    // Check if token already exists for this bin
+    const existing = await this.db.query.binFcmTokens.findFirst({
+      where: and(
+        eq(schema.binFcmTokens.binId, bin.id),
+        eq(schema.binFcmTokens.token, token),
+      ),
+    });
+
+    if (!existing) {
+      await this.db.insert(schema.binFcmTokens).values({
+        binId: bin.id,
+        token: token,
+      });
+    }
+
+    return { success: true, serialNumber, token };
   }
 }
