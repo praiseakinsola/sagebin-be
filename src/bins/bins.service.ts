@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, gte } from 'drizzle-orm';
 import * as schema from '../db/schema';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import { DRIZZLE } from '../db/db.provider';
@@ -76,15 +76,7 @@ export class BinsService {
   }
 
   async getBin(serialNumber: string) {
-    const bin = await this.db.query.bins.findFirst({
-      where: eq(schema.bins.serialNumber, serialNumber),
-    });
-
-    if (!bin) {
-      throw new NotFoundException(
-        `Bin with serial number ${serialNumber} not found`,
-      );
-    }
+    const bin = await this.getOrCreateBin(serialNumber);
 
     const isOnline =
       bin.lastOnlineAt &&
@@ -96,20 +88,34 @@ export class BinsService {
     };
   }
 
-  async getFillLevelTimeline(serialNumber: string) {
+  async getFillLevelTimeline(serialNumber: string, days?: number) {
     const bin = await this.getBin(serialNumber);
 
+    const whereClause = [eq(schema.binFillLevelHistory.binId, bin.id)];
+    if (days) {
+      const cutOffDate = new Date();
+      cutOffDate.setDate(cutOffDate.getDate() - days);
+      whereClause.push(gte(schema.binFillLevelHistory.timestamp, cutOffDate));
+    }
+
     return this.db.query.binFillLevelHistory.findMany({
-      where: eq(schema.binFillLevelHistory.binId, bin.id),
+      where: and(...whereClause),
       orderBy: [desc(schema.binFillLevelHistory.timestamp)],
     });
   }
 
-  async getStatusTimeline(serialNumber: string) {
+  async getStatusTimeline(serialNumber: string, days?: number) {
     const bin = await this.getBin(serialNumber);
 
+    const whereClause = [eq(schema.binStatusHistory.binId, bin.id)];
+    if (days) {
+      const cutOffDate = new Date();
+      cutOffDate.setDate(cutOffDate.getDate() - days);
+      whereClause.push(gte(schema.binStatusHistory.timestamp, cutOffDate));
+    }
+
     return this.db.query.binStatusHistory.findMany({
-      where: eq(schema.binStatusHistory.binId, bin.id),
+      where: and(...whereClause),
       orderBy: [desc(schema.binStatusHistory.timestamp)],
     });
   }

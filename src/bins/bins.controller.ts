@@ -44,12 +44,18 @@ export class BinsController {
   }
 
   @Get(':serialNumber/timeline/fill-level')
-  getFillLevelTimeline(@Param('serialNumber') serialNumber: string) {
-    return this.binsService.getFillLevelTimeline(serialNumber);
+  getFillLevelTimeline(
+    @Param('serialNumber') serialNumber: string,
+    @Body('days') days?: number,
+  ) {
+    return this.binsService.getFillLevelTimeline(serialNumber, days);
   }
 
   @Get(':serialNumber/timeline/status')
-  getStatusTimeline(@Param('serialNumber') serialNumber: string) {
-    return this.binsService.getStatusTimeline(serialNumber);
+  getStatusTimeline(
+    @Param('serialNumber') serialNumber: string,
+    @Body('days') days?: number,
+  ) {
+    return this.binsService.getStatusTimeline(serialNumber, days);
   }
 }
