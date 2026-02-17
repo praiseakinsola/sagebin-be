@@ -61,6 +61,11 @@ export class BinsController {
     return this.binsService.getStatusTimeline(serialNumber, days);
   }
 
+  @Post('test-notification')
+  sendTestNotification(@Body() body: { title?: string; message?: string }) {
+    return this.binsService.sendTestNotification(body.title, body.message);
+  }
+
   @Post(':serialNumber/fcm-token')
   registerFcmToken(
     @Param('serialNumber') serialNumber: string,

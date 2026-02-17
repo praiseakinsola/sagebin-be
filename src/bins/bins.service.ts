@@ -13,6 +13,24 @@ export class BinsService {
     private readonly firebaseService: FirebaseService,
   ) {}
 
+  async notifyAllDevices(title: string, body: string, data?: any) {
+    const tokens = await this.db.query.binFcmTokens.findMany();
+    const uniqueTokens = Array.from(new Set(tokens.map((t) => t.token)));
+
+    for (const token of uniqueTokens) {
+      await this.firebaseService.sendNotification(token, title, body, data);
+    }
+  }
+
+  async sendTestNotification(title?: string, body?: string) {
+    await this.notifyAllDevices(
+      title || 'Test Notification',
+      body || 'This is a test notification from the Sagebin backend.',
+      { type: 'test' },
+    );
+    return { success: true, message: 'Test notification sent to all devices' };
+  }
+
   private async getOrCreateBin(serialNumber: string) {
     let bin = await this.db.query.bins.findFirst({
       where: eq(schema.bins.serialNumber, serialNumber),
@@ -47,6 +65,17 @@ export class BinsService {
       fillLevel,
     });
 
+    // Send test notification to all devices
+    await this.notifyAllDevices(
+      'Fill Level Updated',
+      `Bin ${serialNumber} fill level is now ${fillLevel}%`,
+      {
+        serialNumber,
+        fillLevel: String(fillLevel),
+        type: 'fill_level_updated',
+      },
+    );
+
     // TODO: Make the percentage threshold (80) configurable via environment variables or database settings
     if (fillLevel > 80) {
       const tokens = await this.db.query.binFcmTokens.findMany({
@@ -78,6 +107,17 @@ export class BinsService {
       binId: bin.id,
       status,
     });
+
+    // Send test notification to all devices
+    await this.notifyAllDevices(
+      'Status Updated',
+      `Bin ${serialNumber} status is now ${status}`,
+      {
+        serialNumber,
+        status,
+        type: 'status_updated',
+      },
+    );
 
     return { success: true, serialNumber, status };
   }
