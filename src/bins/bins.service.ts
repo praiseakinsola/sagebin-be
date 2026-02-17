@@ -54,7 +54,7 @@ export class BinsService {
           serialNumber,
           fillLevel: 0,
           status: 'close',
-          lastOnlineAt: new Date(),
+          lastOnlineAt: new Date(0), // Set to the past on creation
         })
         .returning();
 
@@ -90,7 +90,7 @@ export class BinsService {
 
     await this.db
       .update(schema.bins)
-      .set({ fillLevel, lastUpdated: new Date(), lastOnlineAt: new Date() })
+      .set({ fillLevel, lastUpdated: new Date() })
       .where(eq(schema.bins.id, bin.id));
 
     await this.db.insert(schema.binFillLevelHistory).values({
@@ -133,7 +133,7 @@ export class BinsService {
 
     await this.db
       .update(schema.bins)
-      .set({ status, lastUpdated: new Date(), lastOnlineAt: new Date() })
+      .set({ status, lastUpdated: new Date() })
       .where(eq(schema.bins.id, bin.id));
 
     await this.db.insert(schema.binStatusHistory).values({
