@@ -9,24 +9,12 @@ export class FirebaseService implements OnModuleInit {
   private firebaseApp: admin.app.App;
 
   onModuleInit() {
-    // TODO: Move service account path to configuration or environment variables
-    const serviceAccountPath = path.join(
-      process.cwd(),
-      'src',
-      'config',
-      'firebase-service-account.json',
-    );
-
-    if (fs.existsSync(serviceAccountPath)) {
-      this.firebaseApp = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccountPath),
-      });
-      this.logger.log('Firebase Admin initialized successfully.');
-    } else {
-      this.logger.warn(
-        `Firebase Service Account file not found at ${serviceAccountPath}. FCM notifications will not work.`,
-      );
-    }
+    this.firebaseApp = admin.initializeApp({
+      credential: admin.credential.cert(
+        JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT ?? ''),
+      ),
+    });
+    this.logger.log('Firebase Admin initialized successfully.');
   }
 
   async sendNotification(
