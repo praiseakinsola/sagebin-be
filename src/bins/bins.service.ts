@@ -80,7 +80,7 @@ export class BinsService {
 
     const isOnline =
       bin.lastOnlineAt &&
-      new Date().getTime() - bin.lastOnlineAt.getTime() < 60000;
+      new Date().getTime() - bin.lastOnlineAt.getTime() < 60_000;
 
     return {
       ...bin,
