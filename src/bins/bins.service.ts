@@ -2,11 +2,12 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { eq, desc } from 'drizzle-orm';
 import * as schema from '../db/schema';
 import { LibSQLDatabase } from 'drizzle-orm/libsql';
+import { DRIZZLE } from '../db/db.provider';
 
 @Injectable()
 export class BinsService {
   constructor(
-    @Inject('DB_CONNECTION')
+    @Inject(DRIZZLE)
     private readonly db: LibSQLDatabase<typeof schema>,
   ) {}
 
@@ -22,6 +23,7 @@ export class BinsService {
           serialNumber,
           fillLevel: 0,
           status: 'open',
+          lastOnlineAt: new Date(),
         })
         .returning();
       bin = newBin;
@@ -35,7 +37,7 @@ export class BinsService {
 
     await this.db
       .update(schema.bins)
-      .set({ fillLevel, lastUpdated: new Date() })
+      .set({ fillLevel, lastUpdated: new Date(), lastOnlineAt: new Date() })
       .where(eq(schema.bins.id, bin.id));
 
     await this.db.insert(schema.binFillLevelHistory).values({
@@ -51,7 +53,7 @@ export class BinsService {
 
     await this.db
       .update(schema.bins)
-      .set({ status, lastUpdated: new Date() })
+      .set({ status, lastUpdated: new Date(), lastOnlineAt: new Date() })
       .where(eq(schema.bins.id, bin.id));
 
     await this.db.insert(schema.binStatusHistory).values({
@@ -60,6 +62,17 @@ export class BinsService {
     });
 
     return { success: true, serialNumber, status };
+  }
+
+  async setOnline(serialNumber: string) {
+    const bin = await this.getOrCreateBin(serialNumber);
+
+    await this.db
+      .update(schema.bins)
+      .set({ lastOnlineAt: new Date() })
+      .where(eq(schema.bins.id, bin.id));
+
+    return { success: true, serialNumber, lastOnlineAt: new Date() };
   }
 
   async getBin(serialNumber: string) {
@@ -73,7 +86,14 @@ export class BinsService {
       );
     }
 
-    return bin;
+    const isOnline =
+      bin.lastOnlineAt &&
+      new Date().getTime() - bin.lastOnlineAt.getTime() < 60000;
+
+    return {
+      ...bin,
+      isOnline: !!isOnline,
+    };
   }
 
   async getFillLevelTimeline(serialNumber: string) {

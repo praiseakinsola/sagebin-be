@@ -3,16 +3,6 @@ import { relations } from 'drizzle-orm';
 
 export const sqliteTable = sqliteTableCreator((name) => `sagebin_${name}`);
 
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  email: text('email').unique().notNull(),
-  password: text('password').notNull(),
-  name: text('name'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(
-    () => new Date(),
-  ),
-});
-
 export const bins = sqliteTable('bins', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   serialNumber: text('serial_number').unique().notNull(),
@@ -20,6 +10,7 @@ export const bins = sqliteTable('bins', {
   status: text('status', { enum: ['open', 'close'] })
     .notNull()
     .default('open'),
+  lastOnlineAt: integer('last_online_at', { mode: 'timestamp' }),
   lastUpdated: integer('last_updated', { mode: 'timestamp' })
     .$defaultFn(() => new Date())
     .$onUpdateFn(() => new Date()),

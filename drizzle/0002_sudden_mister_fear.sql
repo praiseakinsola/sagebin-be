@@ -1,0 +1,1 @@
+ALTER TABLE `sagebin_bins` ADD `last_online_at` integer;

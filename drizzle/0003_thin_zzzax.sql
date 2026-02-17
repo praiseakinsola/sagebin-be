@@ -1,0 +1,1 @@
+DROP TABLE `sagebin_users`;

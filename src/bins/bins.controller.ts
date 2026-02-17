@@ -38,6 +38,11 @@ export class BinsController {
     return this.binsService.setStatus(serialNumber, setStatusDto.status);
   }
 
+  @Patch(':serialNumber/online')
+  setOnline(@Param('serialNumber') serialNumber: string) {
+    return this.binsService.setOnline(serialNumber);
+  }
+
   @Get(':serialNumber/timeline/fill-level')
   getFillLevelTimeline(@Param('serialNumber') serialNumber: string) {
     return this.binsService.getFillLevelTimeline(serialNumber);
