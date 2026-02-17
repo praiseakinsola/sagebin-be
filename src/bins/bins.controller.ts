@@ -5,6 +5,7 @@ import {
   Post,
   Param,
   Body,
+  Query,
   ParseIntPipe,
 } from '@nestjs/common';
 import { BinsService } from './bins.service';
@@ -48,7 +49,7 @@ export class BinsController {
   @Get(':serialNumber/timeline/fill-level')
   getFillLevelTimeline(
     @Param('serialNumber') serialNumber: string,
-    @Body('days') days?: number,
+    @Query('days', new ParseIntPipe({ optional: true })) days?: number,
   ) {
     return this.binsService.getFillLevelTimeline(serialNumber, days);
   }
@@ -56,7 +57,7 @@ export class BinsController {
   @Get(':serialNumber/timeline/status')
   getStatusTimeline(
     @Param('serialNumber') serialNumber: string,
-    @Body('days') days?: number,
+    @Query('days', new ParseIntPipe({ optional: true })) days?: number,
   ) {
     return this.binsService.getStatusTimeline(serialNumber, days);
   }

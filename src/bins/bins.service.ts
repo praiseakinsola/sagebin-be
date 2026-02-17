@@ -98,16 +98,16 @@ export class BinsService {
       fillLevel,
     });
 
-    // Send test notification to all devices
-    await this.notifyAllDevices(
-      'Fill Level Updated',
-      `Bin ${serialNumber} fill level is now ${fillLevel}%`,
-      {
-        serialNumber,
-        fillLevel: String(fillLevel),
-        type: 'fill_level_updated',
-      },
-    );
+    // TODO Send test notification to all devices
+    // await this.notifyAllDevices(
+    //   'Fill Level Updated',
+    //   `Bin ${serialNumber} fill level is now ${fillLevel}%`,
+    //   {
+    //     serialNumber,
+    //     fillLevel: String(fillLevel),
+    //     type: 'fill_level_updated',
+    //   },
+    // );
 
     // TODO: Make the percentage threshold (80) configurable via environment variables or database settings
     if (fillLevel > 80) {
@@ -141,16 +141,16 @@ export class BinsService {
       status,
     });
 
-    // Send test notification to all devices
-    await this.notifyAllDevices(
-      'Status Updated',
-      `Bin ${serialNumber} status is now ${status}`,
-      {
-        serialNumber,
-        status,
-        type: 'status_updated',
-      },
-    );
+    // TODO Send test notification to all devices
+    // await this.notifyAllDevices(
+    //   'Status Updated',
+    //   `Bin ${serialNumber} status is now ${status}`,
+    //   {
+    //     serialNumber,
+    //     status,
+    //     type: 'status_updated',
+    //   },
+    // );
 
     return { success: true, serialNumber, status };
   }
