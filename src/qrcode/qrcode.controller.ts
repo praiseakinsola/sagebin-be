@@ -1,24 +1,18 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { QrcodeService } from './qrcode.service';
+import { GenerateQrDto } from './dto/generate-qr.dto';
 
 @Controller('qrcode')
 export class QrcodeController {
   constructor(private readonly qrcodeService: QrcodeService) {}
 
   @Get('generate')
-  async generate(
-    @Query('serialNumber') serialNumber: string,
-    @Res() res: Response,
-  ) {
+  async generate(@Query() query: GenerateQrDto, @Res() res: Response) {
+    const { serialNumber } = query;
     console.log(
       `[QrcodeController] Received request to generate QR code for: ${serialNumber}`,
     );
-
-    if (!serialNumber) {
-      console.warn('[QrcodeController] serialNumber is missing in query');
-      return res.status(400).send('serialNumber is required');
-    }
 
     try {
       const img = await this.qrcodeService.generateQR(serialNumber);
