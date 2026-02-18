@@ -13,6 +13,21 @@ export class BinsService {
     private readonly firebaseService: FirebaseService,
   ) {}
 
+  private async notifyBinSubscribers(
+    binId: number,
+    title: string,
+    body: string,
+    data?: any,
+  ) {
+    const tokens = await this.db.query.binFcmTokens.findMany({
+      where: eq(schema.binFcmTokens.binId, binId),
+    });
+
+    for (const { token } of tokens) {
+      await this.firebaseService.sendNotification(token, title, body, data);
+    }
+  }
+
   async notifyAllDevices(title: string, body: string, data?: any) {
     const tokens = await this.db.query.binFcmTokens.findMany();
     const uniqueTokens = Array.from(new Set(tokens.map((t) => t.token)));
@@ -110,19 +125,18 @@ export class BinsService {
     // );
 
     // TODO: Make the percentage threshold (80) configurable via environment variables or database settings
+    // TODO: Make the percentage threshold (80) configurable via environment variables or database settings
     if (fillLevel > 80) {
-      const tokens = await this.db.query.binFcmTokens.findMany({
-        where: eq(schema.binFcmTokens.binId, bin.id),
-      });
-
-      for (const { token } of tokens) {
-        await this.firebaseService.sendNotification(
-          token,
-          'Bin Alert!',
-          `Bin ${serialNumber} is ${fillLevel}% full. Please empty it soon.`,
-          { serialNumber, fillLevel: String(fillLevel) },
-        );
-      }
+      this.notifyBinSubscribers(
+        bin.id,
+        'Bin Alert!',
+        `Bin ${serialNumber} is ${fillLevel}% full. Please empty it soon.`,
+        {
+          serialNumber,
+          fillLevel: String(fillLevel),
+          type: 'fill_level_alert',
+        },
+      );
     }
 
     return { success: true, serialNumber, fillLevel };
@@ -141,16 +155,16 @@ export class BinsService {
       status,
     });
 
-    // TODO Send test notification to all devices
-    // await this.notifyAllDevices(
-    //   'Status Updated',
-    //   `Bin ${serialNumber} status is now ${status}`,
-    //   {
-    //     serialNumber,
-    //     status,
-    //     type: 'status_updated',
-    //   },
-    // );
+    await this.notifyBinSubscribers(
+      bin.id,
+      'Status Updated',
+      `Bin ${serialNumber} status is now ${status}`,
+      {
+        serialNumber,
+        status,
+        type: 'status_updated',
+      },
+    );
 
     return { success: true, serialNumber, status };
   }
