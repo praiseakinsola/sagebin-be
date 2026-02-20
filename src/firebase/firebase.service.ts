@@ -1,7 +1,5 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import * as path from 'path';
-import * as fs from 'fs';
 
 @Injectable()
 export class FirebaseService implements OnModuleInit {
@@ -9,6 +7,7 @@ export class FirebaseService implements OnModuleInit {
   private firebaseApp: admin.app.App;
 
   onModuleInit() {
+    // console.log(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT ?? ''));
     this.firebaseApp = admin.initializeApp({
       credential: admin.credential.cert(
         JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT ?? ''),

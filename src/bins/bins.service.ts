@@ -23,6 +23,8 @@ export class BinsService {
       where: eq(schema.binFcmTokens.binId, binId),
     });
 
+    console.log(tokens);
+
     for (const { token } of tokens) {
       await this.firebaseService.sendNotification(token, title, body, data);
     }
@@ -113,31 +115,16 @@ export class BinsService {
       fillLevel,
     });
 
-    // TODO Send test notification to all devices
-    // await this.notifyAllDevices(
-    //   'Fill Level Updated',
-    //   `Bin ${serialNumber} fill level is now ${fillLevel}%`,
-    //   {
-    //     serialNumber,
-    //     fillLevel: String(fillLevel),
-    //     type: 'fill_level_updated',
-    //   },
-    // );
-
-    // TODO: Make the percentage threshold (80) configurable via environment variables or database settings
-    // TODO: Make the percentage threshold (80) configurable via environment variables or database settings
-    if (fillLevel > 80) {
-      this.notifyBinSubscribers(
-        bin.id,
-        'Bin Alert!',
-        `Bin ${serialNumber} is ${fillLevel}% full. Please empty it soon.`,
-        {
-          serialNumber,
-          fillLevel: String(fillLevel),
-          type: 'fill_level_alert',
-        },
-      );
-    }
+    this.notifyBinSubscribers(
+      bin.id,
+      'Bin Alert!',
+      `Bin ${serialNumber} is ${fillLevel}% full.`,
+      {
+        serialNumber,
+        fillLevel: String(fillLevel),
+        type: 'fill_level_alert',
+      },
+    );
 
     return { success: true, serialNumber, fillLevel };
   }
